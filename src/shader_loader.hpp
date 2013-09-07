@@ -23,7 +23,10 @@
 /***
  * Includes
  ***/
+
 // OpenGL
+// http://www.opengl.org/discussion_boards/showthread.php/172481-glGenBuffer-was-not-declared
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glu.h>
 
