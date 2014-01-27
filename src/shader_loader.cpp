@@ -88,7 +88,7 @@ void ShaderLoader::readFile( const char* filePath, GLchar* buffer, const unsigne
 void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
 {
     const GLint STR_SIZE = 1024;
-    GLchar* shaderCode = new GLchar[ STR_SIZE ];
+    GLchar* shaderCode = new GLchar[ STR_SIZE ]();
     GLchar log[STR_SIZE] = "";
     GLuint shaderObject;
     GLint compilationResult;
