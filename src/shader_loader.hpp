@@ -51,6 +51,8 @@ class ShaderLoader
          * 1. Initialization and destruction
          ***/
         ShaderLoader();
+        ShaderLoader( const ShaderLoader& ) = delete;
+        ShaderLoader( ShaderLoader&& ) = delete;
         ~ShaderLoader();
 
     public:
@@ -69,6 +71,13 @@ class ShaderLoader
         void loadShaderObject( GLenum shaderType, const char* shaderFile );
     public:
         void loadMinimumShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
+
+
+        /***
+         * 4. Operators
+         ***/
+        ShaderLoader& operator=( const ShaderLoader& ) = delete ;
+        ShaderLoader& operator=( ShaderLoader&& ) = delete;
 };
 
 } // namespace msl
