@@ -118,7 +118,8 @@ void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
 }
 
 
-void ShaderLoader::loadMinimumShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
+
+GLint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
 {
     GLint linkingResult;
     const GLint STR_SIZE = 1024;
@@ -138,12 +139,40 @@ void ShaderLoader::loadMinimumShaderProgram( const char* vertexShaderFile, const
         cout << "ERROR linking shader program" << endl
              << log << endl;
 
-        return;
+        return -1;
     }
 
-    // Set the created shader program as the active one.
-    glUseProgram( shaderProgram );
     cout << "New shader program loaded and being used!" << endl;
+    return shaderProgram;
 }
+
+GLint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile )
+{
+    GLint linkingResult;
+    const GLint STR_SIZE = 1024;
+    GLchar log[STR_SIZE];
+
+    // Load both vertex and fragment shaders.
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFile );
+
+    // Link the shader program and check the result.
+    glLinkProgram( shaderProgram );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
+
+    if( linkingResult == GL_FALSE ){
+        glGetProgramInfoLog( shaderProgram, STR_SIZE, NULL, log );
+
+        cout << "ERROR linking shader program" << endl
+             << log << endl;
+
+        return -1;
+    }
+
+    cout << "New shader program loaded and being used!" << endl;
+    return shaderProgram;
+}
+
 
 } // namespace msl

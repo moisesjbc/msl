@@ -69,7 +69,8 @@ class ShaderLoader
          ***/
         void loadShaderObject( GLenum shaderType, const char* shaderFile );
     public:
-        void loadMinimumShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
+        GLint loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
+        GLint loadShaderProgram( const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile );
 
 
         /***
