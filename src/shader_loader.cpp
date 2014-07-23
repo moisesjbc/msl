@@ -29,11 +29,6 @@ ShaderLoader* ShaderLoader::instance = NULL;
 
 ShaderLoader::ShaderLoader()
 {
-    shaderProgram = glCreateProgram();
-    if( shaderProgram == 0 ){
-        cout << "ERROR in glCreateProgram()" << endl;
-        return;
-    }
 }
 
 ShaderLoader::~ShaderLoader()
@@ -125,6 +120,12 @@ GLint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char*
     const GLint STR_SIZE = 1024;
     GLchar log[STR_SIZE];
 
+    shaderProgram = glCreateProgram();
+    if( shaderProgram == 0 ){
+        std::cerr << "ERROR in glCreateProgram()" << std::endl;
+        return -1;
+    }
+
     // Load both vertex and fragment shaders.
     loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
     loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
@@ -152,10 +153,16 @@ GLint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char* 
     const GLint STR_SIZE = 1024;
     GLchar log[STR_SIZE];
 
+    shaderProgram = glCreateProgram();
+    if( shaderProgram == 0 ){
+        std::cerr << "ERROR in glCreateProgram()" << std::endl;
+        return -1;
+    }
+
     // Load both vertex and fragment shaders.
     loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
     loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFile );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
 
     // Link the shader program and check the result.
     glLinkProgram( shaderProgram );
