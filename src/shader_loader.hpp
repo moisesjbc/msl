@@ -29,16 +29,21 @@ extern "C" {
     #define GL_GLEXT_PROTOTYPES
     #include <GL/gl.h>
 }
-
-// STD
-#include <fstream>
-#include <stdexcept>
+#include <fstream>      // File management
+#include <stdexcept>    // std::runtime_error
 
 namespace msl {
 
-/***
- * File main class
- ***/
+/*!
+ * \brief The ShaderLoader class - Minimalist class for compiling and linking
+ * OpenGL shader programs. Just instance this class and call any of the methods
+ * loadShaderProgram(). You will get the ID of a freshly OpenGL shader
+ * program... or a runtime_error exception.
+ *
+ * NOTE: This class only loads shader programs. Once you get your program ID,
+ * it's your responsability to call glUseProgram() for using the program
+ * and / or glDeleteProgram() for destroying it.
+ */
 class ShaderLoader
 {
     public:
@@ -59,8 +64,14 @@ class ShaderLoader
         /***
          * 3. Shader loading
          ***/
-        GLuint loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
-        GLuint loadShaderProgram( const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile );
+        // Vertex + fragment shaders
+        GLuint loadShaderProgram( const char* vertexShaderFilePath,
+                                  const char* fragmentShaderFilePath );
+
+        // Vertex + geometry + fragment shaders.
+        GLuint loadShaderProgram( const char* vertexShaderFilePath,
+                                  const char* geometryShaderFilePath,
+                                  const char* fragmentShaderFilePath );
 
 
         /***

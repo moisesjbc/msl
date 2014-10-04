@@ -24,7 +24,8 @@ namespace msl {
  * 3. Shader loading
  ***/
 
-GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
+GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFilePath,
+                                        const char* fragmentShaderFilePath )
 {
     GLint linkingResult;
 
@@ -35,8 +36,8 @@ GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char
     }
 
     // Load both vertex and fragment shaders.
-    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFilePath );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFilePath );
 
     // Link the shader program and check the result.
     glLinkProgram( shaderProgram );
@@ -50,7 +51,9 @@ GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char
 }
 
 
-GLuint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile )
+GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFilePath,
+                                        const char* geometryShaderFilePath,
+                                        const char* fragmentShaderFilePath )
 {
     GLint linkingResult;
 
@@ -61,9 +64,9 @@ GLuint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char*
     }
 
     // Load both vertex and fragment shaders.
-    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFilePath );
+    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFilePath );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFilePath );
 
     // Link the shader program and check the result.
     glLinkProgram( shaderProgram );
