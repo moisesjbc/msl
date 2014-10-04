@@ -20,70 +20,71 @@
 
 namespace msl {
 
-ShaderLoader* ShaderLoader::instance = NULL;
-
-
-/***
- * 1. Initialization and destruction
- ***/
-
-ShaderLoader::ShaderLoader()
-{
-}
-
-ShaderLoader::~ShaderLoader()
-{
-    //delete [] shaders;
-    // TODO (here or not): free allocated resources (shader objects, etc).
-}
-
-
-ShaderLoader* ShaderLoader::getInstance()
-{
-    if( instance == NULL ){
-        instance = new ShaderLoader();
-    }
-    return instance;
-}
-
-
-void ShaderLoader::destroy()
-{
-    delete instance;
-    instance = NULL;
-}
-
-
-/***
- * 2. Utilities
- ***/
-
-void ShaderLoader::readFile( const char* filePath, GLchar* buffer, const unsigned int n )
-{
-    // Open given file.
-    std::ifstream file( filePath );
-    if( !file.is_open() ){
-        return;
-    }
-
-    // Copy file content to buffer and append a null character.
-    file.read( buffer, n-1 );
-    buffer[file.gcount()] = 0;
-
-    // Close file.
-    file.close();
-}
-
-
 /***
  * 3. Shader loading
+ ***/
+
+GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
+{
+    GLint linkingResult;
+
+    shaderProgram = glCreateProgram();
+    if( shaderProgram == 0 ){
+        // TODO: Return OpenGL error message too.
+        throw std::runtime_error( "Error at ShaderLoader::loadShaderProgram() - glCreateProgram() returned 0" );
+    }
+
+    // Load both vertex and fragment shaders.
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+
+    // Link the shader program and check the result.
+    glLinkProgram( shaderProgram );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
+
+    if( linkingResult == GL_FALSE ){
+        throwLinkingError();
+    }
+
+    return shaderProgram;
+}
+
+
+GLuint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile )
+{
+    GLint linkingResult;
+
+    shaderProgram = glCreateProgram();
+    if( shaderProgram == 0 ){
+        // TODO: Return OpenGL error message too.
+        throw std::runtime_error( "Error at ShaderLoader::loadShaderProgram() - glCreateProgram() returned 0" );
+    }
+
+    // Load both vertex and fragment shaders.
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
+    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFile );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+
+    // Link the shader program and check the result.
+    glLinkProgram( shaderProgram );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
+
+    if( linkingResult == GL_FALSE ){
+        throwLinkingError();
+    }
+
+    return shaderProgram;
+}
+
+
+/***
+ * 5. Auxiliar methods
  ***/
 
 void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
 {
     const GLint STR_SIZE = 5112;
     GLchar* shaderCode = new GLchar[ STR_SIZE ]();
-    GLchar log[STR_SIZE] = "";
     GLuint shaderObject;
     GLint compilationResult;
 
@@ -100,10 +101,7 @@ void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
 
     if( compilationResult == GL_FALSE ){
         // TODO: Differ between different shader types.
-        glGetShaderInfoLog( shaderObject, STR_SIZE, NULL, log );
-        cout << "ERROR compiling shader: " << endl
-             << log << endl;
-        return;
+        throwCompilingError( shaderObject );
     }
 
     // Attach shader object to shader program.
@@ -113,72 +111,46 @@ void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
 }
 
 
-
-GLint ShaderLoader::loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
+void ShaderLoader::readFile( const char* filePath, GLchar* buffer, const unsigned int n )
 {
-    GLint linkingResult;
-    const GLint STR_SIZE = 1024;
-    GLchar log[STR_SIZE];
-
-    shaderProgram = glCreateProgram();
-    if( shaderProgram == 0 ){
-        std::cerr << "ERROR in glCreateProgram()" << std::endl;
-        return -1;
+    // Open given file.
+    std::ifstream file( filePath );
+    if( !file.is_open() ){
+        return; // TODO: Throw an error.
     }
 
-    // Load both vertex and fragment shaders.
-    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
+    // Copy file content to buffer and append a null character.
+    file.read( buffer, n-1 );
+    buffer[file.gcount()] = 0;
 
-    // Link the shader program and check the result.
-    glLinkProgram( shaderProgram );
-    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
-
-    if( linkingResult == GL_FALSE ){
-        glGetProgramInfoLog( shaderProgram, STR_SIZE, NULL, log );
-
-        cout << "ERROR linking shader program" << endl
-             << log << endl;
-
-        return -1;
-    }
-
-    cout << "New shader program loaded and being used!" << endl;
-    return shaderProgram;
+    // Close file.
+    file.close();
 }
 
-GLint ShaderLoader::loadShaderProgram(const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile )
+
+void ShaderLoader::throwLinkingError() const
 {
-    GLint linkingResult;
-    const GLint STR_SIZE = 1024;
-    GLchar log[STR_SIZE];
+    const GLint MAX_LOG_SIZE = 1024;
+    GLchar log[MAX_LOG_SIZE];
 
-    shaderProgram = glCreateProgram();
-    if( shaderProgram == 0 ){
-        std::cerr << "ERROR in glCreateProgram()" << std::endl;
-        return -1;
-    }
+    glGetProgramInfoLog( shaderProgram, MAX_LOG_SIZE, NULL, log );
+    const std::string errorMessage =
+            std::string( "Error linking shader program - log:\n" ) +
+            std::string( log );
+    throw std::runtime_error( errorMessage );
+}
 
-    // Load both vertex and fragment shaders.
-    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
 
-    // Link the shader program and check the result.
-    glLinkProgram( shaderProgram );
-    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
+void ShaderLoader::throwCompilingError( GLuint shaderObject ) const
+{
+    const GLint MAX_LOG_SIZE = 1024;
+    GLchar log[MAX_LOG_SIZE];
 
-    if( linkingResult == GL_FALSE ){
-        glGetProgramInfoLog( shaderProgram, STR_SIZE, NULL, log );
-
-        cout << "ERROR linking shader program" << endl
-             << log << endl;
-
-        return -1;
-    }
-
-    cout << "New shader program loaded and being used!" << endl;
-    return shaderProgram;
+    glGetShaderInfoLog( shaderObject, MAX_LOG_SIZE, NULL, log );
+    const std::string errorMessage =
+            std::string( "Error compiling shader object - log:\n" ) +
+            std::string( log );
+    throw std::runtime_error( errorMessage );
 }
 
 

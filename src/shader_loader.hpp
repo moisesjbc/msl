@@ -31,9 +31,8 @@ extern "C" {
 }
 
 // STD
-#include <iostream>
 #include <fstream>
-using namespace std;
+#include <stdexcept>
 
 namespace msl {
 
@@ -42,37 +41,26 @@ namespace msl {
  ***/
 class ShaderLoader
 {
-    private:
-        // Singlenton pattern: only one static instance and a private constructor.
-        static ShaderLoader* instance;
-
-        GLuint shaderProgram;
-
+    public:
         /***
-         * 1. Initialization and destruction
+         * 1. Construction
          ***/
-        ShaderLoader();
+        ShaderLoader() = default;
         ShaderLoader( const ShaderLoader& ) = delete;
         ShaderLoader( ShaderLoader&& ) = delete;
-        ~ShaderLoader();
 
-    public:
-        static ShaderLoader* getInstance();
-        static void destroy();
 
-    protected:
         /***
-         * 2. Utilities
+         * 2. Destruction
          ***/
-        void readFile( const char* file, GLchar* buffer, const unsigned int n );
+        ~ShaderLoader() = default;
+
 
         /***
          * 3. Shader loading
          ***/
-        void loadShaderObject( GLenum shaderType, const char* shaderFile );
-    public:
-        GLint loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
-        GLint loadShaderProgram( const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile );
+        GLuint loadShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
+        GLuint loadShaderProgram( const char* vertexShaderFile, const char* geometryShaderFile, const char* fragmentShaderFile );
 
 
         /***
@@ -80,6 +68,24 @@ class ShaderLoader
          ***/
         ShaderLoader& operator=( const ShaderLoader& ) = delete ;
         ShaderLoader& operator=( ShaderLoader&& ) = delete;
+
+
+    private:
+        /***
+         * 5. Auxiliar methods
+         ***/
+        void loadShaderObject( GLenum shaderType, const char* shaderFile );
+        void readFile( const char* file, GLchar* buffer, const unsigned int n );
+        void throwLinkingError() const;
+        void throwCompilingError( GLuint shaderObject ) const;
+
+
+    private:
+        /***
+         * Attributes
+         ***/
+        // Current program being built.
+        GLuint shaderProgram;
 };
 
 } // namespace msl
