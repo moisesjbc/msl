@@ -52,7 +52,7 @@ class ShaderLoader
          ***/
         ShaderLoader() = default;
         ShaderLoader( const ShaderLoader& ) = delete;
-        ShaderLoader( ShaderLoader&& ) = delete;
+        ShaderLoader( ShaderLoader& ) = delete;
 
 
         /***
@@ -78,7 +78,7 @@ class ShaderLoader
          * 4. Operators
          ***/
         ShaderLoader& operator=( const ShaderLoader& ) = delete ;
-        ShaderLoader& operator=( ShaderLoader&& ) = delete;
+        ShaderLoader& operator=( ShaderLoader& ) = delete;
 
 
     private:
