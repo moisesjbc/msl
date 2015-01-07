@@ -1,12 +1,11 @@
 /***
- * Copyright 2013 Moises J. Bonilla Caraballo (Neodivert)
+ * Copyright 2013 - 2015 Moises J. Bonilla Caraballo (Neodivert)
  *
  * This file is part of MSL.
  *
  * MSL is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
+ * it under the terms of the GNU General Public License v3 as published by
+ * the Free Software Foundation.
  *
  * MSL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with MSL.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 
 #ifndef SHADER_LOADER_HPP
@@ -24,50 +23,80 @@
  * Includes
  ***/
 // OpenGL
+// http://www.opengl.org/discussion_boards/showthread.php/172481-glGenBuffer-was-not-declared
 #define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-
-// STD
-#include <iostream>
-#include <fstream>
-using namespace std;
+extern "C" {
+    #include <GL/gl.h>
+    #include <GL/glext.h>
+}
+#include <fstream>      // File management
+#include <stdexcept>    // std::runtime_error
 
 namespace msl {
 
-/***
- * File main class
- ***/
+/*!
+ * \brief The ShaderLoader class - Minimalist class for compiling and linking
+ * OpenGL shader programs. Just instance this class and call any of the methods
+ * loadShaderProgram(). You will get the ID of a freshly OpenGL shader
+ * program... or a runtime_error exception.
+ *
+ * NOTE: This class only loads shader programs. Once you get your program ID,
+ * it's your responsability to call glUseProgram() for using the program
+ * and / or glDeleteProgram() for destroying it.
+ */
 class ShaderLoader
 {
-    private:
-        // Singlenton pattern: only one static instance and a private constructor.
-        static ShaderLoader* instance;
-
-        GLuint shaderProgram;
-
-        /***
-         * 1. Initialization and destruction
-         ***/
-        ShaderLoader();
-        ~ShaderLoader();
-
     public:
-        static ShaderLoader* getInstance();
-        static void destroy();
-
-    protected:
         /***
-         * 2. Utilities
+         * 1. Construction
          ***/
-        void readFile( const char* file, GLchar* buffer, const unsigned int n );
+        ShaderLoader() = default;
+        ShaderLoader( const ShaderLoader& ) = delete;
+        ShaderLoader( ShaderLoader&& ) = delete;
+
+
+        /***
+         * 2. Destruction
+         ***/
+        ~ShaderLoader() = default;
+
 
         /***
          * 3. Shader loading
          ***/
+        // Vertex + fragment shaders
+        GLuint loadShaderProgram( const char* vertexShaderFilePath,
+                                  const char* fragmentShaderFilePath );
+
+        // Vertex + geometry + fragment shaders.
+        GLuint loadShaderProgram( const char* vertexShaderFilePath,
+                                  const char* geometryShaderFilePath,
+                                  const char* fragmentShaderFilePath );
+
+
+        /***
+         * 4. Operators
+         ***/
+        ShaderLoader& operator=( const ShaderLoader& ) = delete ;
+        ShaderLoader& operator=( ShaderLoader&& ) = delete;
+
+
+    private:
+        /***
+         * 5. Auxiliar methods
+         ***/
         void loadShaderObject( GLenum shaderType, const char* shaderFile );
-    public:
-        void loadMinimumShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile );
+        void readFile( const char* file, GLchar* buffer, const unsigned int n );
+        void throwLinkingError() const;
+        void throwCompilingError( GLuint shaderObject ) const;
+
+
+    private:
+        /***
+         * Attributes
+         ***/
+        // Current program being built.
+        GLuint shaderProgram;
 };
 
 } // namespace msl

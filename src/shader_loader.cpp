@@ -1,12 +1,11 @@
 /***
- * Copyright 2013 Moises J. Bonilla Caraballo (Neodivert)
+ * Copyright 2013 - 2015 Moises J. Bonilla Caraballo (Neodivert)
  *
  * This file is part of MSL.
  *
  * MSL is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
+ * it under the terms of the GNU General Public License v3 as published by
+ * the Free Software Foundation.
  *
  * MSL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,62 +13,113 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with MSL.  If not, see <http://www.gnu.org/licenses/>.
 ***/
 
 #include "shader_loader.hpp"
 
 namespace msl {
 
-ShaderLoader* ShaderLoader::instance = NULL;
-
-
 /***
- * 1. Initialization and destruction
+ * 3. Shader loading
  ***/
 
-ShaderLoader::ShaderLoader()
+GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFilePath,
+                                        const char* fragmentShaderFilePath )
 {
+    GLint linkingResult;
+
     shaderProgram = glCreateProgram();
     if( shaderProgram == 0 ){
-        cout << "ERROR in glCreateProgram()" << endl;
-        return;
+        // TODO: Return OpenGL error message too.
+        throw std::runtime_error( "Error at ShaderLoader::loadShaderProgram() - glCreateProgram() returned 0" );
     }
-}
 
-ShaderLoader::~ShaderLoader()
-{
-    //delete [] shaders;
-    // TODO (here or not): free allocated resources (shader objects, etc).
-}
+    // Load both vertex and fragment shaders.
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFilePath );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFilePath );
 
+    // Link the shader program and check the result.
+    glLinkProgram( shaderProgram );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
 
-ShaderLoader* ShaderLoader::getInstance()
-{
-    if( instance == NULL ){
-        instance = new ShaderLoader();
+    if( linkingResult == GL_FALSE ){
+        throwLinkingError();
     }
-    return instance;
+
+    return shaderProgram;
 }
 
 
-void ShaderLoader::destroy()
+GLuint ShaderLoader::loadShaderProgram( const char* vertexShaderFilePath,
+                                        const char* geometryShaderFilePath,
+                                        const char* fragmentShaderFilePath )
 {
-    delete instance;
-    instance = NULL;
+    GLint linkingResult;
+
+    shaderProgram = glCreateProgram();
+    if( shaderProgram == 0 ){
+        // TODO: Return OpenGL error message too.
+        throw std::runtime_error( "Error at ShaderLoader::loadShaderProgram() - glCreateProgram() returned 0" );
+    }
+
+    // Load both vertex and fragment shaders.
+    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFilePath );
+    loadShaderObject( GL_GEOMETRY_SHADER, geometryShaderFilePath );
+    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFilePath );
+
+    // Link the shader program and check the result.
+    glLinkProgram( shaderProgram );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
+
+    if( linkingResult == GL_FALSE ){
+        throwLinkingError();
+    }
+
+    return shaderProgram;
 }
 
 
 /***
- * 2. Utilities
+ * 5. Auxiliar methods
  ***/
+
+void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
+{
+    const GLint STR_SIZE = 5112;
+    GLchar* shaderCode = new GLchar[ STR_SIZE ]();
+    GLuint shaderObject;
+    GLint compilationResult;
+
+    // Create shader object.
+    shaderObject = glCreateShader( shaderType );
+
+    // Read shader source from file.
+    readFile( shaderFile, shaderCode, STR_SIZE );
+    glShaderSource( shaderObject, 1, (const GLchar**)( &shaderCode ), &STR_SIZE );
+
+    // Compile shader and check compilation result.
+    glCompileShader( shaderObject );
+    glGetShaderiv( shaderObject, GL_COMPILE_STATUS, &compilationResult );
+
+    if( compilationResult == GL_FALSE ){
+        // TODO: Differ between different shader types.
+        throwCompilingError( shaderObject );
+    }
+
+    // Attach shader object to shader program.
+    glAttachShader( shaderProgram, shaderObject );
+
+    delete [] shaderCode;
+}
+
 
 void ShaderLoader::readFile( const char* filePath, GLchar* buffer, const unsigned int n )
 {
     // Open given file.
     std::ifstream file( filePath );
     if( !file.is_open() ){
-        return;
+        return; // TODO: Throw an error.
     }
 
     // Copy file content to buffer and append a null character.
@@ -81,70 +131,30 @@ void ShaderLoader::readFile( const char* filePath, GLchar* buffer, const unsigne
 }
 
 
-/***
- * 3. Shader loading
- ***/
-
-void ShaderLoader::loadShaderObject( GLenum shaderType, const char* shaderFile )
+void ShaderLoader::throwLinkingError() const
 {
-    const GLint STR_SIZE = 1024;
-    GLchar* shaderCode = new GLchar[ STR_SIZE ];
-    GLchar log[STR_SIZE] = "";
-    GLuint shaderObject;
-    GLint compilationResult;
+    const GLint MAX_LOG_SIZE = 1024;
+    GLchar log[MAX_LOG_SIZE];
 
-    // Create shader object.
-    shaderObject = glCreateShader( shaderType );
-
-    // Read shader source from file.
-    readFile( shaderFile, shaderCode, STR_SIZE );
-    glShaderSource( shaderObject, 1, &shaderCode, &STR_SIZE );
-
-    // Compile shader and check compilation result.
-    glCompileShader( shaderObject );
-    glGetShaderiv( shaderObject, GL_COMPILE_STATUS, &compilationResult );
-
-    if( compilationResult == GL_FALSE ){
-        // TODO: Differ between different shader types.
-        glGetShaderInfoLog( shaderObject, STR_SIZE, NULL, log );
-        cout << "ERROR compiling shader: " << endl
-             << log << endl;
-        return;
-    }
-
-    // Attach shader object to shader program.
-    glAttachShader( shaderProgram, shaderObject );
-
-    delete [] shaderCode;
+    glGetProgramInfoLog( shaderProgram, MAX_LOG_SIZE, NULL, log );
+    const std::string errorMessage =
+            std::string( "Error linking shader program - log:\n" ) +
+            std::string( log );
+    throw std::runtime_error( errorMessage );
 }
 
 
-void ShaderLoader::loadMinimumShaderProgram( const char* vertexShaderFile, const char* fragmentShaderFile )
+void ShaderLoader::throwCompilingError( GLuint shaderObject ) const
 {
-    GLint linkingResult;
-    const GLint STR_SIZE = 1024;
-    GLchar log[STR_SIZE];
+    const GLint MAX_LOG_SIZE = 1024;
+    GLchar log[MAX_LOG_SIZE];
 
-    // Load both vertex and fragment shaders.
-    loadShaderObject( GL_VERTEX_SHADER, vertexShaderFile );
-    loadShaderObject( GL_FRAGMENT_SHADER, fragmentShaderFile );
-
-    // Link the shader program and check the result.
-    glLinkProgram( shaderProgram );
-    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &linkingResult );
-
-    if( linkingResult == GL_FALSE ){
-        glGetProgramInfoLog( shaderProgram, STR_SIZE, NULL, log );
-
-        cout << "ERROR linking shader program" << endl
-             << log << endl;
-
-        return;
-    }
-
-    // Set the created shader program as the active one.
-    glUseProgram( shaderProgram );
-    cout << "New shader program loaded and being used!" << endl;
+    glGetShaderInfoLog( shaderObject, MAX_LOG_SIZE, NULL, log );
+    const std::string errorMessage =
+            std::string( "Error compiling shader object - log:\n" ) +
+            std::string( log );
+    throw std::runtime_error( errorMessage );
 }
+
 
 } // namespace msl
