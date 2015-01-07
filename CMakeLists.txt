@@ -39,3 +39,14 @@ target_link_libraries( ${LIBRARY_NAME} ${LIBRARIES} )
 # Instalation.
 install( DIRECTORY src/ DESTINATION include/msl FILES_MATCHING PATTERN "*.hpp" )
 install( TARGETS ${LIBRARY_NAME} DESTINATION lib )
+
+# Uninstall target
+# Source: http://www.cmake.org/Wiki/CMake_FAQ#Can_I_do_.22make_uninstall.22_with_CMake.3F
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(
+    uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake )
