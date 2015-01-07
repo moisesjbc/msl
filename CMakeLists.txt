@@ -12,6 +12,9 @@ set( PROJECT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${
 file( GLOB SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp" )
 include_directories( "${PROJECT_SOURCE_DIR}/src" )
 
+# Compiler flags
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+
 # Include library OpenGL.
 find_package( OpenGL REQUIRED )
 include_directories( ${OPENGL_INCLUDE_DIR} )
