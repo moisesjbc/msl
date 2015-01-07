@@ -20,6 +20,11 @@ find_package( OpenGL REQUIRED )
 include_directories( ${OPENGL_INCLUDE_DIR} )
 set( LIBRARIES ${LIBRARIES} ${OPENGL_LIBRARIES} )
 
+# Configure header file
+configure_file(
+    "${PROJECT_SOURCE_DIR}/src/shader_loader.hpp.in"
+    "${PROJECT_BINARY_DIR}/src/shader_loader.hpp" )
+
 # Build shared library.
 set( LIBRARY_NAME ${PROJECT_NAME} )
 add_library( ${LIBRARY_NAME} SHARED ${SOURCE_FILES} )
