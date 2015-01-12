@@ -7,6 +7,20 @@ OpenGL. Just call one method and load your precious shader program (*).
 (*) Only shader programs including vertex + fragment shaders or 
 vertex + geometry + fragment shaders can be loaded currently using MSL.
 
+## Instalation (only tested on Ubuntu 14.04)
+
+1. Clone this repository in local.
+
+2. Enter in the downloaded directory.
+
+3. Install the library on your system.
+
+```
+cmake .
+make
+sudo make install
+```
+
 ## Sample code
 
 ```c++
