@@ -2,10 +2,10 @@ cmake_minimum_required( VERSION 2.8 )
 set( CMAKE_BUILD_TYPE Release )
 
 # Project info
-project( sml )
+project( msl )
 set( PROJECT_VERSION_MAJOR 1 )
 set( PROJECT_VERSION_MINOR 0 )
-set( PROJECT_VERSION_PATCH 0 )
+set( PROJECT_VERSION_PATCH 1 )
 set( PROJECT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} )
 
 # Project files
